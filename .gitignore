@@ -1,0 +1,19 @@
+# --- Simulation build artifacts & logs (never committed) ---
+*.vvp
+*.vcd
+*.fst
+*.log
+.ninja_log
+.ninja_lock
+*.ninja_lock
+sim/lint.ok
+
+# Python bytecode cache
+__pycache__/
+
+# Verilator coverage suite (sim/vl): the CMake build tree and run artifacts.
+# sim/vl/CMakeLists.txt, coverage.vlt, cov.ps1 and empty_main.cpp are source.
+sim/vl/build/
+
+# The Gowin build runs outside the repository (fpga/build.sh), and the
+# generated SerDes IP under fpga/serdes/ is ignored there (fpga/serdes/.gitignore).

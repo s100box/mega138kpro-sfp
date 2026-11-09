@@ -1,0 +1,27 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// SPDX-FileCopyrightText: 2026 Howard M. Harte
+// Tang Mega 138K Pro Dock pins for m138_peer: the dock's 50 MHz oscillator,
+// its user key, the debugger's channel-B UART and LED0-LED3; the SFP
+// TX_DISABLE pins are Sipeed's customized_phy example's
+// (TangMega-138KPro-example, sfp+/customized_phy). The SerDes pins are fixed
+// by the quad and need no constraint.
+IO_LOC  "sys_clk" P16;
+IO_PORT "sys_clk" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC  "key_n" K16;
+IO_PORT "key_n" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC  "uart_txd" P15;
+IO_PORT "uart_txd" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=8;
+IO_LOC  "uart_rxd" N16;
+IO_PORT "uart_rxd" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC  "led_n[0]" J14;
+IO_LOC  "led_n[1]" R26;
+IO_LOC  "led_n[2]" L20;
+IO_LOC  "led_n[3]" M25;
+IO_PORT "led_n[0]" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8;
+IO_PORT "led_n[1]" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8;
+IO_PORT "led_n[2]" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8;
+IO_PORT "led_n[3]" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8;
+IO_LOC  "sfp_tx_disable_0" R18;
+IO_PORT "sfp_tx_disable_0" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8;
+IO_LOC  "sfp_tx_disable_1" M20;
+IO_PORT "sfp_tx_disable_1" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8;

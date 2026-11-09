@@ -1,0 +1,6 @@
+# Gowin-generated SerDes IP (see ../../README.md): only serdes.ipc, the record
+# of each generation's settings, is tracked.
+*
+!.gitignore
+!*/
+!*/serdes.ipc

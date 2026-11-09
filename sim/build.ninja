@@ -1,0 +1,34 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+# SPDX-FileCopyrightText: 2026 Howard M. Harte
+# Ninja build for mega138kpro-sfp static analysis + simulation.
+#
+#   ninja           default -- Verible lint + format check (the gate)
+#   ninja lint      lint.sh: verible-verilog-lint over the RTL, then
+#                   verible-verilog-format --verify over the RTL and benches
+#   ninja sim       the self-checking iverilog benches (gate.sh)
+#
+# The benches take the SerDes as a behavioral stand-in, so a plain iverilog runs
+# them with no vendor library. gate.sh reads the bridge and counters from the
+# sibling hh-xcku5p-dev and the UART cores from hh-uart.
+ninja_required_version = 1.10
+
+# $bash_exe comes from the sibling checkout retrosim-build's toolchain.ninja, the
+# one file in the workspace that names a tool install. A bare `bash` would not do
+# on a Windows host with WSL: CreateProcess searches System32 before PATH and finds
+# the Linux bash there.
+include ../../retrosim-build/toolchain.ninja
+
+rule lint
+  command = $bash_exe lint.sh
+rule sim
+  command = $bash_exe gate.sh
+
+build lint.ok: lint lint.sh ../.rules.verible_lint ../.verible.format $
+    ../rtl/m138_prbs_lane.sv ../rtl/m138_peer.sv $
+    tb_m138_prbs_lane.sv tb_m138_peer.sv serdes_top_stub.sv
+build lint: phony lint.ok
+
+build sim: sim gate.sh tb_m138_prbs_lane.sv tb_m138_peer.sv serdes_top_stub.sv m138_rate.svh $
+    ../rtl/m138_prbs_lane.sv ../rtl/m138_peer.sv || lint.ok
+
+default lint

@@ -1,0 +1,14 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// SPDX-FileCopyrightText: 2026 Howard M. Harte
+// Coverage focus filter (passed to every verilate() under VL_COVERAGE).
+// Turns coverage instrumentation OFF for the benches, the SerDes stand-in and
+// the sibling repositories' sources, so the merged report scopes to this
+// repository's synthesizable RTL (rtl/*.sv). Substring globs (leading '*'): the
+// stored source paths mix '/' and '' separators, so anchor on fragments, not
+// whole directories.
+`verilator_config
+coverage_off -file "*tb_*"
+coverage_off -file "*serdes_top_stub*"
+coverage_off -file "*hh-xcku5p-dev*"
+coverage_off -file "*hh-uart*"
+coverage_off -file "*verilated_std*"

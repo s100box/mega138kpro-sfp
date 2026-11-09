@@ -1,0 +1,44 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT OR Apache-2.0
+# SPDX-FileCopyrightText: 2026 Howard M. Harte
+# Pre-commit gate: the shell scripts parse, the Python compiles, and the
+# Verible lint + format check and the self-checking iverilog benches pass.
+# Synthesis stays out of it (fpga/build.sh needs Gowin EDA and the SerDes IP).
+# The two sim scripts auto-discover their tool (Verible / the OSS CAD Suite) from
+# $VERIBLE / $OSS_CAD_SUITE, PATH, or a release unzipped under the user's home,
+# and skip themselves gracefully if none is found -- so a plain clone still
+# commits.
+#
+#   Enable once per clone:  git config core.hooksPath .githooks
+#   Bypass a WIP commit:    git commit --no-verify
+set -e
+# ../retrosim-build/hooks/gate-env.sh, when present, puts Verible and the OSS
+# CAD Suite on PATH from the workspace toolchain pin (and fixes Git-for-Windows'
+# DLL shadowing of oss-cad's); without it the two scripts discover their tools.
+_geroot="$(git rev-parse --show-toplevel)"
+[ -f "$_geroot/../retrosim-build/hooks/gate-env.sh" ] && . "$_geroot/../retrosim-build/hooks/gate-env.sh"
+
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+
+echo "[pre-commit] shell scripts parse"
+for f in $(git ls-files '*.sh') .githooks/pre-commit; do
+  sh -n "$f" || { echo "  $f does not parse"; exit 1; }
+done
+
+py=$(command -v python3 || command -v python || true)
+if [ -n "$py" ]; then
+  echo "[pre-commit] Python compiles"
+  for f in $(git ls-files '*.py'); do
+    "$py" -c "import ast,sys; ast.parse(open(sys.argv[1], encoding='utf-8').read(), sys.argv[1])" "$f" ||
+      { echo "  $f does not compile"; exit 1; }
+  done
+fi
+
+echo "[pre-commit] verible lint + format check"
+bash "$root/sim/lint.sh"
+
+echo "[pre-commit] benches"
+bash "$root/sim/gate.sh"
+
+echo "[pre-commit] OK"

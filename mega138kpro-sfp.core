@@ -1,0 +1,75 @@
+CAPI=2:
+# SPDX-License-Identifier: MIT OR Apache-2.0
+# SPDX-FileCopyrightText: 2026 Howard M. Harte
+#
+# FuseSoC manifest for mega138kpro-sfp -- a Tang Mega 138K Pro Dock as a
+# PRBS-31 far end on its two SFP+ cages.
+#
+# The portable file list and compile order. The design also builds from two
+# sibling checkouts, which have to sit beside this repository: hh-xcku5p-dev
+# (the register bridge and frequency counters, pl/board/rtl) and hh-uart (the
+# UART cores). The Gowin SerDes IP (SerDes_Top) is generated per line rate into
+# fpga/serdes/ and is not part of this list; fpga/build.sh adds it, and the
+# benches use the behavioral sim/serdes_top_stub.sv in its place.
+name: "hharte:board:mega138kpro_sfp:0.1.0"
+description: "Tang Mega 138K Pro Dock PRBS-31 far end on both SFP+ cages (Gowin SerDes, raw 80-bit words)"
+
+filesets:
+  # The sibling sources, in compile order.
+  siblings:
+    file_type: systemVerilogSource
+    files:
+      - ../hh-uart/rtl/uart_baud_dds.sv
+      - ../hh-uart/rtl/uart_rx_core.sv
+      - ../hh-uart/rtl/uart_tx_core.sv
+      - ../hh-xcku5p-dev/pl/board/rtl/ku5p_uart_bridge.sv
+      - ../hh-xcku5p-dev/pl/board/rtl/ku5p_freq_chan.sv
+      - ../hh-xcku5p-dev/pl/board/rtl/ku5p_freq_bank.sv
+
+  # One PRBS-31 lane; vendor-neutral.
+  lane:
+    file_type: systemVerilogSource
+    files:
+      - rtl/m138_prbs_lane.sv
+
+  # The top. It includes m138_rate.svh, which fpga/build.sh writes per line
+  # rate; the benches take sim/m138_rate.svh.
+  peer:
+    file_type: systemVerilogSource
+    files:
+      - rtl/m138_peer.sv
+
+  tb_lane:
+    file_type: systemVerilogSource
+    files:
+      - sim/tb_m138_prbs_lane.sv
+
+  tb_peer:
+    file_type: systemVerilogSource
+    files:
+      - sim/m138_rate.svh: {is_include_file: true}
+      - sim/serdes_top_stub.sv
+      - sim/tb_m138_peer.sv
+
+targets:
+  default: &default
+    filesets: [siblings, lane, peer]
+    toplevel: m138_peer
+
+  lint:
+    default_tool: verilator
+    filesets: [lane]
+    toplevel: m138_prbs_lane
+    tools:
+      verilator:
+        mode: lint-only
+
+  sim_prbs_lane:
+    default_tool: icarus
+    filesets: [lane, tb_lane]
+    toplevel: tb_m138_prbs_lane
+
+  sim_peer:
+    default_tool: icarus
+    filesets: [siblings, lane, peer, tb_peer]
+    toplevel: tb_m138_peer
